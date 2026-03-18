@@ -1,9 +1,10 @@
 number:list = list(input("Enter a number: "))
 print(number[::-1])
 print(max(number))
-#print(count(max(number)))
 print(min(number))
 print(len(number))
+print(number.count(max(number)))
+
 for i in range(len(number)):
     number[i] = int(number[i])
 print(sum(number))
