@@ -6,8 +6,5 @@ def get_list():
             if counting == 4:
                 print (number[i])
                 break
-    else:
-        print("none")
-
 number = [88,100,90,95,97,97,99,97,99]
 get_list ()
