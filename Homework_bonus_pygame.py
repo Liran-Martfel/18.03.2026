@@ -25,7 +25,7 @@ font_symbol = pygame.font.SysFont("segoe ui emoji", 65)
 # נתוני המשחק
 rate = [2, 3, 9, 7, 11]
 symbols = ["🍒", "🍋", "⭐", "🔔", "💎"]
-my_money = 100
+my_money = 50
 bet_input_text = "5"  # הטקסט שהמשתמש מקליד
 active_input = False  # האם תיבת הקלט במיקוד
 reels = ["💎", "💎", "💎"]
