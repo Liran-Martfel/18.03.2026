@@ -24,7 +24,7 @@ def rules():
 
 
 def gamble(money):
-    print(f'Welcome - you have {my_money} money left.')
+    print(f'you have {my_money} money left.')
     bet = int(input("How much will you bet: "))
     def slot_machine(bet):
         chance_win = []
@@ -37,10 +37,6 @@ def gamble(money):
     chance_win,slot = slot_machine(bet)
 
     def check_win_or_lose(chance_win: list):
-        # winning_by_3 = (chance_win[0] == chance_win[1] == chance_win[2])
-        # winning_by_2 =  (chance_win[0] == chance_win[1] != chance_win[2] or
-        #                 chance_win[0] == chance_win[2] != chance_win[1] or
-        #                 chance_win[1] == chance_win[2] != chance_win[0])
         if len(set(chance_win)) == 2:
             return 2
         if len(set(chance_win)) == 1:
@@ -54,13 +50,13 @@ def gamble(money):
             winning_symbol = chance_win[0]
             i = symbols.index(winning_symbol)
             multiplier = rate[i]
-            money = money + (bet * 777 * multiplier)
+            money = money + ((bet * 777 * multiplier) - bet)
             print(f'\n{green}Winner! now you have {money}{reset_color}')
             return money
         if result == 2:
             for symbol in chance_win:
                 if chance_win.count(symbol) == 2:
-                    money = money + (bet * 11)
+                    money = money + ((bet * 11) - bet)
                     print(f'\n{green}Winner! now you have {money}{reset_color}')
                     return money
         if result is None:
@@ -69,7 +65,6 @@ def gamble(money):
         return money
     money = winning_money(winning,money,rate,chance_win,bet)
     return  money
-
 
 while True:
     print('press 1 to see the rules\npress 2 to play\npress 3 to exit\n')
@@ -80,6 +75,9 @@ while True:
         case 2:
             my_money = gamble(my_money)
             while True:
+                if my_money == 0:
+                    print('\nYou have no more money!')
+                    break
                 again = input('\nwould you like to play again?\npress (y/n)\n')
                 if again == 'y':
                     gamble(my_money)
