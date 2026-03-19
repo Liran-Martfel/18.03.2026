@@ -6,7 +6,7 @@ import sys
 pygame.init()
 WIDTH, HEIGHT = 900, 700
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Cyber-Vegas Slot Machine - Custom Bet")
+pygame.display.set_caption("Cyber-Vegas Slot Machine")
 clock = pygame.time.Clock()
 
 # צבעים
@@ -20,18 +20,20 @@ GOLD = (255, 215, 0)
 
 # פונטים
 font_ui = pygame.font.SysFont("consolas", 24, bold=True)
+font_title = pygame.font.SysFont("consolas", 50, bold=True)
 font_symbol = pygame.font.SysFont("segoe ui emoji", 65)
 
 # נתוני המשחק
 rate = [2, 3, 9, 7, 11]
 symbols = ["🍒", "🍋", "⭐", "🔔", "💎"]
 my_money = 50
-bet_input_text = "5"  # הטקסט שהמשתמש מקליד
-active_input = False  # האם תיבת הקלט במיקוד
+bet_input_text = "5"
+active_input = False
 reels = ["💎", "💎", "💎"]
 is_spinning = False
 spin_duration = 0
 result_msg = ""
+game_state = "MENU"  # מצב התחלתי: תפריט
 
 
 def check_win(current_reels):
@@ -62,91 +64,100 @@ def draw_lever(is_down):
 
 # --- לולאה ראשית ---
 running = True
-input_rect = pygame.Rect(50, 150, 140, 40)  # מיקום תיבת הקלט
+input_rect = pygame.Rect(50, 150, 140, 40)
 
 while running:
     screen.fill(BG_COLOR)
-
-    # המרת הטקסט למספר (בדיקת בטיחות)
-    try:
-        current_bet = int(bet_input_text) if bet_input_text != "" else 0
-    except ValueError:
-        current_bet = 0
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
 
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            # בדיקה אם לחצו על תיבת הקלט
-            if input_rect.collidepoint(event.pos):
-                active_input = True
-            else:
-                active_input = False
+        if game_state == "MENU":
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    game_state = "PLAY"
 
-            # בדיקת לחיצה על הידית
-            if 750 < event.pos[0] < 850 and 200 < event.pos[1] < 500:
-                if not is_spinning and 0 < current_bet <= my_money:
-                    is_spinning = True
-                    spin_duration = 40
-                    result_msg = ""
+        elif game_state == "PLAY":
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if input_rect.collidepoint(event.pos):
+                    active_input = True
+                else:
+                    active_input = False
 
-        if event.type == pygame.KEYDOWN:
-            if active_input:
-                if event.key == pygame.K_BACKSPACE:
-                    bet_input_text = bet_input_text[:-1]
-                elif event.unicode.isdigit():  # מאפשר רק מספרים
-                    if len(bet_input_text) < 5:  # הגבלת אורך
+                if 750 < event.pos[0] < 850 and 200 < event.pos[1] < 500:
+                    try:
+                        current_bet = int(bet_input_text) if bet_input_text != "" else 0
+                    except:
+                        current_bet = 0
+                    if not is_spinning and 0 < current_bet <= my_money:
+                        is_spinning = True
+                        spin_duration = 40
+                        result_msg = ""
+
+            if event.type == pygame.KEYDOWN:
+                if active_input:
+                    if event.key == pygame.K_BACKSPACE:
+                        bet_input_text = bet_input_text[:-1]
+                    elif event.unicode.isdigit() and len(bet_input_text) < 5:
                         bet_input_text += event.unicode
 
-            # הפעלה עם רווח (רק אם לא מקלידים כרגע)
-            if event.key == pygame.K_SPACE and not active_input:
-                if not is_spinning and 0 < current_bet <= my_money:
-                    is_spinning = True
-                    spin_duration = 40
-                    result_msg = ""
+                if event.key == pygame.K_SPACE and not active_input:
+                    try:
+                        current_bet = int(bet_input_text) if bet_input_text != "" else 0
+                    except:
+                        current_bet = 0
+                    if not is_spinning and 0 < current_bet <= my_money:
+                        is_spinning = True
+                        spin_duration = 40
+                        result_msg = ""
 
-    # עדכון לוגיקה
-    if is_spinning:
-        spin_duration -= 1
-        reels = [random.choice(symbols) for _ in range(3)]
-        if spin_duration <= 0:
-            is_spinning = False
-            res = check_win(reels)
-            my_money, result_msg = update_money(res, my_money, current_bet, reels)
+    # לוגיקה וציור לפי מצב
+    if game_state == "MENU":
+        title_surf = font_title.render("Welcome to the Casino", True, GOLD)
+        start_surf = font_ui.render("Press SPACE to Start", True, WHITE)
+        screen.blit(title_surf, (WIDTH // 2 - title_surf.get_width() // 2, HEIGHT // 2 - 50))
+        screen.blit(start_surf, (WIDTH // 2 - start_surf.get_width() // 2, HEIGHT // 2 + 50))
 
-    # --- ציור ---
-    # גוף המכונה
-    pygame.draw.rect(screen, DARK_PURPLE, (150, 200, 600, 300), border_radius=20)
-    pygame.draw.rect(screen, NEON_PURPLE, (150, 200, 600, 300), 5, border_radius=20)
+    elif game_state == "PLAY":
+        # עדכון לוגיקה של המכונה
+        if is_spinning:
+            spin_duration -= 1
+            reels = [random.choice(symbols) for _ in range(3)]
+            if spin_duration <= 0:
+                is_spinning = False
+                res = check_win(reels)
+                try:
+                    current_bet = int(bet_input_text)
+                except:
+                    current_bet = 0
+                my_money, result_msg = update_money(res, my_money, current_bet, reels)
 
-    for i in range(3):
-        x_p = 200 + (i * 180)
-        pygame.draw.rect(screen, (20, 20, 40), (x_p, 250, 150, 200), border_radius=10)
-        sym = font_symbol.render(reels[i], True, WHITE)
-        screen.blit(sym, (x_p + (150 - sym.get_width()) // 2, 310))
+        # ציור המכונה
+        pygame.draw.rect(screen, DARK_PURPLE, (150, 200, 600, 300), border_radius=20)
+        pygame.draw.rect(screen, NEON_PURPLE, (150, 200, 600, 300), 5, border_radius=20)
+        for i in range(3):
+            x_p = 200 + (i * 180)
+            pygame.draw.rect(screen, (20, 20, 40), (x_p, 250, 150, 200), border_radius=10)
+            sym = font_symbol.render(reels[i], True, WHITE)
+            screen.blit(sym, (x_p + (150 - sym.get_width()) // 2, 310))
 
-    draw_lever(is_spinning)
+        draw_lever(is_spinning)
 
-    # UI וכסף
-    balance_txt = font_ui.render(f"CASH: ${my_money}", True, FOREST_GREEN)
-    screen.blit(balance_txt, (50, 50))
+        # UI
+        balance_txt = font_ui.render(f"CASH: ${my_money}", True, FOREST_GREEN)
+        screen.blit(balance_txt, (50, 50))
+        label_txt = font_ui.render("SET BET:", True, WHITE)
+        screen.blit(label_txt, (50, 115))
 
-    # תיבת קלט להימור
-    label_txt = font_ui.render("SET BET:", True, WHITE)
-    screen.blit(label_txt, (50, 115))
+        box_color = FOREST_GREEN if active_input else NEON_PURPLE
+        pygame.draw.rect(screen, (30, 30, 50), input_rect, border_radius=5)
+        pygame.draw.rect(screen, box_color, input_rect, 2, border_radius=5)
+        input_surface = font_ui.render(bet_input_text, True, WHITE)
+        screen.blit(input_surface, (input_rect.x + 10, input_rect.y + 5))
 
-    # צבע התיבה משתנה כשהיא פעילה
-    box_color = FOREST_GREEN if active_input else NEON_PURPLE
-    pygame.draw.rect(screen, (30, 30, 50), input_rect, border_radius=5)
-    pygame.draw.rect(screen, box_color, input_rect, 2, border_radius=5)
-
-    input_surface = font_ui.render(bet_input_text, True, WHITE)
-    screen.blit(input_surface, (input_rect.x + 10, input_rect.y + 5))
-
-    # הודעות
-    msg_txt = font_ui.render(result_msg, True, GOLD if "WIN" in result_msg else NEON_RED)
-    screen.blit(msg_txt, (WIDTH // 2 - msg_txt.get_width() // 2, 550))
+        msg_txt = font_ui.render(result_msg, True, GOLD if "WIN" in result_msg else NEON_RED)
+        screen.blit(msg_txt, (WIDTH // 2 - msg_txt.get_width() // 2, 550))
 
     pygame.display.flip()
     clock.tick(60)
