@@ -24,7 +24,7 @@ def rules():
 
 
 def gamble(money):
-    print(f'you have {my_money} money left.')
+    print(f'you have {money} money left.')
     bet = int(input("How much will you bet: "))
     def slot_machine(bet):
         chance_win = []
