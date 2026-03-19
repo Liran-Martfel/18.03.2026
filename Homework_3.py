@@ -82,8 +82,8 @@ while True:
                 if again == 'y':
                     gamble(my_money)
                 else:
-                    print('Returning to main menu...')
+                    print(f'\n{light_purple}Thank you for playing, you have {my_money}{reset_color}\n')
                     break
         case 3:
-            print('Thank you for playing')
+            print('Thank you for playing - Goodbye!')
             break
