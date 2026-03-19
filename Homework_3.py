@@ -3,11 +3,11 @@ import time
 
 rate = [    2,     3,     9,    7,   11]
 symbols = ["🍒", "🍋", "⭐", "🔔", "💎"]
-money = 50
+my_money = 50
 reset_color = '\033[0m'
 light_purple = '\033[38;2;179;136;255m'
 red = '\033[31m'
-green = '\033[32m'
+green = '\033[38;2;57;255;20m'
 print(f"{light_purple}=== SLOT MACHINE ==={reset_color}")
 
 
@@ -23,10 +23,10 @@ def rules():
         f"⭐ ⭐ ⭐ = 3 of the same kind → {green}winner{reset_color} → you won (bet * 777 * 9)\n🔔 🍒 🔔 = 2 of the same kind → {green}winner{reset_color} → you won (bet * 7)\n")
 
 
-def gamble():
-    print(f'Welcome - you have {money} money left.')
+def gamble(money):
+    print(f'Welcome - you have {my_money} money left.')
     bet = int(input("How much will you bet: "))
-    def slot_machine():
+    def slot_machine(bet):
         chance_win = []
         for i in range(3):
             chance = random.choice(symbols)
@@ -34,37 +34,41 @@ def gamble():
             print(chance, end=" | ")
             time.sleep(1)
         return chance_win,bet
-    slot_machine()
+    chance_win,slot = slot_machine(bet)
 
     def check_win_or_lose(chance_win: list):
-
-        winning_by_3 = (chance_win[0] == chance_win[1] == chance_win[2])
-        winning_by_2 =  (chance_win[0] == chance_win[1] != chance_win[2] or
-                        chance_win[0] == chance_win[2] != chance_win[1] or
-                        chance_win[1] == chance_win[2] != chance_win[0])
+        # winning_by_3 = (chance_win[0] == chance_win[1] == chance_win[2])
+        # winning_by_2 =  (chance_win[0] == chance_win[1] != chance_win[2] or
+        #                 chance_win[0] == chance_win[2] != chance_win[1] or
+        #                 chance_win[1] == chance_win[2] != chance_win[0])
         if len(set(chance_win)) == 2:
-            return winning_by_2
+            return 2
         if len(set(chance_win)) == 1:
-            return winning_by_3
+            return 3
         else:
             return None
-    winning = check_win_or_lose
+    winning = check_win_or_lose(chance_win)
 
-    def winning_money(winning_by_2,winning_by_3: list,money: int,rate: list,chance_win: list,bet: int):
-        if winning_by_3:
-            for i in range(len(chance_win)):
-                if chance_win[i] == rate[i]:
-                    new_rate = rate[i]
-                    money = money + (bet * 777 * new_rate)
-            print(f'Winner! now you have {money}')
-        if winning_by_2:
-            money = money + (bet * 11)
-            print(f'Winner! now you have {money}')
+    def winning_money(result,money: int,rate: list,chance_win: list,bet: int):
+        if result == 3:
+            winning_symbol = chance_win[0]
+            i = symbols.index(winning_symbol)
+            multiplier = rate[i]
+            money = money + (bet * 777 * multiplier)
+            print(f'\n{green}Winner! now you have {money}{reset_color}')
+            return money
+        if result == 2:
+            for symbol in chance_win:
+                if chance_win.count(symbol) == 2:
+                    money = money + (bet * 11)
+                    print(f'\n{green}Winner! now you have {money}{reset_color}')
+                    return money
+        if result is None:
+            money = money - bet
+            print(f'\n{red}You lost! now you have {money}{reset_color}')
         return money
-    winning_money(winning,money,rate,chance_win,bet)
-
-
-
+    money = winning_money(winning,money,rate,chance_win,bet)
+    return  money
 
 
 while True:
@@ -74,13 +78,14 @@ while True:
         case 1:
             rules()
         case 2:
-            gamble()
-            again = input('\nwould you like to play again?\npress (y/n)\n')
-            if again == 'y':
-                gamble()
-            else:
-                print('Thank you for playing')
-                break
+            my_money = gamble(my_money)
+            while True:
+                again = input('\nwould you like to play again?\npress (y/n)\n')
+                if again == 'y':
+                    gamble(my_money)
+                else:
+                    print('Returning to main menu...')
+                    break
         case 3:
             print('Thank you for playing')
             break
